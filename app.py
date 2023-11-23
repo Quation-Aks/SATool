@@ -19,9 +19,9 @@ app = Flask(__name__)
 # Retrieve environment variables with default values
 #aws_access_key_id = config('AWS_ACCESS_KEY_ID')
 #aws_secret_access_key = config('AWS_SECRET_ACCESS_KEY')
-aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID', 'AKIASDT5BINYALJ5M76J')
-aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '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')
-aws_region = os.environ.get('AWS_REGION', 'us-east-1')
+aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
+aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+aws_region = os.environ.get('AWS_REGION')
 aws_s3_bucket = os.environ.get('AWS_S3_BUCKET', 'twixorapi-bucket')
 
 # Initialize the S3 client
