@@ -31,6 +31,13 @@ s3 = boto3.client('s3',
     region_name=aws_region
 )
 
+# S3 resource for downloading files
+s3_resource = boto3.resource('s3',
+    aws_access_key_id=aws_access_key_id,
+    aws_secret_access_key=aws_secret_access_key,
+    region_name=aws_region
+)
+
 # CSV Processor
 def process_csv_data(csv_text, start_row, end_row):
     processed_data = []
@@ -91,30 +98,21 @@ def get_images():
         return jsonify({"error": "Provide exactly 2 image names"})
 
     try:
-        s3_resource = boto3.resource('s3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=aws_region
-        )
+        base64_images = {}
 
-        # Create an in-memory zip file to store images
-        memory_file = io.BytesIO()
-        with zipfile.ZipFile(memory_file, 'w') as zf:
-            for image_name in image_names:
-                # Download the image file from S3
-                s3_key = f'images/{image_name}.jpg'
-                s3_resource.meta.client.download_file(aws_s3_bucket, s3_key, image_name + '.jpg')
-                zf.write(image_name + '.jpg')
+        # Encode each image to base64
+        for image_name in image_names:
+            s3_key = f'images/{image_name}.jpg'
+            obj = s3.get_object(Bucket=aws_s3_bucket, Key=s3_key)
+            image_data = obj['Body'].read()
 
+            # Convert the image to base64
+            base64_data = base64.b64encode(image_data).decode('utf-8')
 
-        # Prepare the zip file for sending
-        memory_file.seek(0)
+            base64_images[image_name] = base64_data
 
-        # Determine the appropriate file name for the zip
-        zip_file_name = f'images.zip'
-
-        # Return the zip file as an attachment
-        return send_file(memory_file, as_attachment=True, download_name=zip_file_name)
+        # Return the base64-encoded images as a JSON response
+        return jsonify({"base64_images": base64_images})
     except botocore.exceptions.ClientError as e:
         # Handle S3-related errors
         return jsonify({"error": "S3 operation failed", "details": str(e)}), 500
